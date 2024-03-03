@@ -1,0 +1,118 @@
+-- FILTER BANK 'DSB' FROM TABLE
+select *
+from pd23_wk1
+where transaction_code like 'dsb%';
+
+-- CASE STATEMENT TO RENAME VALUES FROM DSB BANK
+with cte as
+(
+select *
+from pd23_wk1
+where transaction_code like 'dsb%'
+)
+SELECT transaction_code,
+	value,
+    customer_code,
+	case 
+	when online_inperson = '2' then 'In-Person' else 'online' end as Online_Inperson,
+    transaction_date
+FROM cte;
+
+-- CHANGE THE DATE TO QUATERS
+with cte as
+(
+select *
+from pd23_wk1
+where transaction_code like 'dsb%'
+)
+SELECT transaction_code,
+	value,
+    customer_code,
+	case 
+	when online_inperson = '2' then 'In-Person' else 'online' end as Online_Inperson,
+    Quarter(STR_TO_DATE(transaction_date, '%d/%m/%y')) as Quarter_
+FROM cte;
+
+-- sum values
+with cte as
+(
+select *
+from pd23_wk1
+where transaction_code like 'dsb%'
+)
+SELECT sum(value) as value,
+	case 
+	when online_inperson = '2' then 'In-Person' else 'online' end as Online_Inperson,
+    Quarter(STR_TO_DATE(transaction_date, '%d/%m/%y')) as Quarter_
+FROM cte
+group by online_inperson, quarter_;
+
+-- pivot target table from multiple column to single coulumn
+select ï»¿Online_inperson,
+		1 as quater_period,
+		q1 as Quarter_target
+from target
+union all
+select ï»¿Online_inperson,
+		2 as quater_period,
+		q2 as Quarter_target
+from target
+union all
+select ï»¿Online_inperson, 
+		3 as quater_period,
+		q3 as Quarter_target
+from target
+union all
+select ï»¿Online_inperson, 
+		4 as quater_period,
+		q4 as Quarter_target
+from target
+;
+
+-- join cte 2 and cte 3 to obtain rewuired output
+with cte2 as 
+(
+with cte as
+(
+select *
+from pd23_wk1
+where transaction_code like 'dsb%'
+)
+SELECT sum(value) as value,
+	case 
+	when online_inperson = '2' then 'In-Person' else 'online' end as Online_Inperson,
+    Quarter(STR_TO_DATE(transaction_date, '%d/%m/%y')) as Quarter_
+FROM cte
+group by online_inperson, quarter_
+)
+, cte3 as
+(
+select ï»¿Online_inperson,
+		1 as quarter_period,
+		q1 as Quarter_target
+from target
+union all
+select ï»¿Online_inperson,
+		2 as quarter_period,
+		q2 as Quarter_target
+from target
+union all
+select ï»¿Online_inperson, 
+		3 as quarter_period,
+		q3 as Quarter_target
+from target
+union all
+select ï»¿Online_inperson, 
+		4 as quarter_period,
+		q4 as Quarter_target
+from target
+)
+select c2.Online_inperson,
+		c3.Quarter_period,
+        c2.Value,
+        c3.Quarter_target,
+        c2.value - c3.Quarter_target as Variance 
+from cte2 c2
+join cte3 c3 on c3.ï»¿Online_inperson = c2.Online_inperson
+and c2.quarter_ = c3.quarter_period
+;
