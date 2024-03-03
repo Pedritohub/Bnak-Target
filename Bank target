@@ -33,7 +33,7 @@ SELECT transaction_code,
         Quarter(STR_TO_DATE(transaction_date, '%d/%m/%y')) as Quarter_
 FROM cte;
 
--- sum values
+-- SUM VALUES BASE ON TYPE OF TRANSACTION AND QUARTERS INVOLBE
 with cte as
 (
 select *
@@ -47,7 +47,7 @@ SELECT sum(value) as value,
 FROM cte
 group by online_inperson, quarter_;
 
--- pivot target table from multiple column to single coulumn
+-- PIVOT QUARTER TARGET TABLE FROM MULTIPLE COLUMN TO SINGLE COLUMN
 select ï»¿Online_inperson,
        1 as quater_period,
        q1 as Quarter_target
@@ -69,7 +69,7 @@ select ï»¿Online_inperson,
 from target
 ;
 
--- join cte2 and cte3 to obtain required output
+-- JOIN CTE2 AND CTE3 TO OBTAIN DESIRED OUTPUT
 with cte2 as 
 (
 with cte as
